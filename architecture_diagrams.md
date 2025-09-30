@@ -4,141 +4,138 @@ Este documento contém os diagramas da arquitetura do backend e frontend do sist
 
 ## Backend Architecture (Node.js/Express)
 
+### Visão Geral da Arquitetura
+
 ```mermaid
 graph TB
-    subgraph "Client Layer"
-        WEB[Web App<br/>Flutter Web]
-        MOBILE[Mobile App<br/>Flutter]
-        API_CLIENT[API Clients]
+    subgraph "Clients"
+        WEB["Flutter Web"]
+        MOBILE["Flutter Mobile"]
     end
 
-    subgraph "API Gateway Layer"
-        EXPRESS[Express Server<br/>Port 3200]
-        CORS[CORS Middleware]
-        HELMET[Security Middleware]
-        MORGAN[Logging Middleware]
+    subgraph "API Layer"
+        EXPRESS["Express Server<br/>Port 3200"]
+        MIDDLEWARE["CORS, Helmet, Morgan"]
     end
 
-    subgraph "Authentication Layer"
-        JWT[JWT Authentication]
-        FIREBASE_AUTH[Firebase Auth]
-        AUTH_MIDDLEWARE[Auth Middleware]
+    subgraph "Business Logic"
+        CONTROLLERS["Controllers"]
+        SERVICES["Services"]
     end
 
+    subgraph "Data & External"
+        DATABASE[("MariaDB")]
+        STORAGE[("Firebase Storage")]
+        AI["OpenAI"]
+        PAYMENTS["Payment Providers"]
+    end
+
+    WEB --> EXPRESS
+    MOBILE --> EXPRESS
+    EXPRESS --> MIDDLEWARE
+    EXPRESS --> CONTROLLERS
+    CONTROLLERS --> SERVICES
+    SERVICES --> DATABASE
+    SERVICES --> STORAGE
+    SERVICES --> AI
+    SERVICES --> PAYMENTS
+```
+
+### Detalhamento das Camadas
+
+```mermaid
+graph LR
     subgraph "Route Layer"
-        AUTH_ROUTES[/api/auth]
-        USER_ROUTES[/api/users]
-        DOC_ROUTES[/api/documentos]
-        EXAM_ROUTES[/api/exames]
-        MED_ROUTES[/api/medicamentos]
-        PLAN_ROUTES[/api/plans]
-        PAYMENT_ROUTES[/api/payments]
-        SHARE_ROUTES[/api/shares]
-        PROXY_ROUTES[/proxy]
+        AUTH["/api/auth"]
+        USERS["/api/users"]
+        DOCS["/api/documentos"]
+        EXAMS["/api/exames"]
+        MEDS["/api/medicamentos"]
+        PLANS["/api/plans"]
+        PAYMENTS["/api/payments"]
+        SHARES["/api/shares"]
     end
 
     subgraph "Controller Layer"
-        AUTH_CTRL[Auth Controller]
-        USER_CTRL[User Controller]
-        DOC_CTRL[Document Controller]
-        EXAM_CTRL[Exam Controller]
-        MED_CTRL[Medicine Controller]
-        PLAN_CTRL[Plan Controller]
-        PAYMENT_CTRL[Payment Controller]
-        SHARE_CTRL[Share Controller]
-        PROXY_CTRL[File Proxy Controller]
+        AUTH_CTRL["AuthController"]
+        USER_CTRL["UserController"]
+        DOC_CTRL["DocumentController"]
+        EXAM_CTRL["ExamController"]
+        MED_CTRL["MedicineController"]
+        PLAN_CTRL["PlanController"]
+        PAY_CTRL["PaymentController"]
+        SHARE_CTRL["ShareController"]
     end
 
     subgraph "Service Layer"
-        DOC_SERVICE[Document Service]
-        PAYMENT_SERVICE[Payment Service]
-        PLAN_SERVICE[Plan Service]
-        SHARE_SERVICE[Share Service]
-        UPLOAD_SERVICE[Upload Service]
-        HEALTH_SERVICE[Health Card Service]
+        DOC_SVC["DocumentService"]
+        PAY_SVC["PaymentService"]
+        PLAN_SVC["PlanService"]
+        SHARE_SVC["ShareService"]
+        UPLOAD_SVC["UploadService"]
     end
 
-    subgraph "Payment Providers"
-        ASAAS[Asaas Provider]
-        STRIPE[Stripe Provider]
-        PAYMENT_FACTORY[Payment Factory]
+    AUTH --> AUTH_CTRL
+    USERS --> USER_CTRL
+    DOCS --> DOC_CTRL
+    EXAMS --> EXAM_CTRL
+    MEDS --> MED_CTRL
+    PLANS --> PLAN_CTRL
+    PAYMENTS --> PAY_CTRL
+    SHARES --> SHARE_CTRL
+
+    DOC_CTRL --> DOC_SVC
+    PAY_CTRL --> PAY_SVC
+    PLAN_CTRL --> PLAN_SVC
+    SHARE_CTRL --> SHARE_SVC
+    DOC_CTRL --> UPLOAD_SVC
+```
+
+### Integrações Externas
+
+```mermaid
+graph TB
+    subgraph "Backend Services"
+        API["Express API"]
     end
 
-    subgraph "AI Services"
-        OPENAI[OpenAI Integration]
-        ANALYZE[Document Analysis]
-        PREFILL[Form Prefill]
+    subgraph "Authentication"
+        JWT["JWT Tokens"]
+        FIREBASE_AUTH["Firebase Auth"]
     end
 
-    subgraph "Data Layer"
-        MARIADB[(MariaDB<br/>Database)]
-        FIREBASE_STORAGE[(Firebase Storage)]
-        FILE_SYSTEM[File System]
+    subgraph "AI & Analysis"
+        OPENAI["OpenAI API"]
+        DOC_ANALYSIS["Document Analysis"]
+        FORM_PREFILL["Form Prefill"]
     end
 
-    subgraph "External Services"
-        FIREBASE[Firebase Services]
-        WEBHOOK[Webhook Handlers]
-        NOTIFICATIONS[Notification Service]
+    subgraph "Payments"
+        ASAAS["Asaas"]
+        STRIPE["Stripe"]
+        PAYMENT_FACTORY["Payment Factory"]
     end
 
-    %% Connections
-    WEB --> EXPRESS
-    MOBILE --> EXPRESS
-    API_CLIENT --> EXPRESS
+    subgraph "Storage"
+        FIREBASE_STORAGE["Firebase Storage"]
+        FILE_SYSTEM["Local Files"]
+    end
 
-    EXPRESS --> CORS
-    EXPRESS --> HELMET
-    EXPRESS --> MORGAN
+    subgraph "Database"
+        MARIADB[("MariaDB")]
+    end
 
-    EXPRESS --> AUTH_ROUTES
-    EXPRESS --> USER_ROUTES
-    EXPRESS --> DOC_ROUTES
-    EXPRESS --> EXAM_ROUTES
-    EXPRESS --> MED_ROUTES
-    EXPRESS --> PLAN_ROUTES
-    EXPRESS --> PAYMENT_ROUTES
-    EXPRESS --> SHARE_ROUTES
-    EXPRESS --> PROXY_ROUTES
-
-    AUTH_ROUTES --> AUTH_CTRL
-    USER_ROUTES --> USER_CTRL
-    DOC_ROUTES --> DOC_CTRL
-    EXAM_ROUTES --> EXAM_CTRL
-    MED_ROUTES --> MED_CTRL
-    PLAN_ROUTES --> PLAN_CTRL
-    PAYMENT_ROUTES --> PAYMENT_CTRL
-    SHARE_ROUTES --> SHARE_CTRL
-    PROXY_ROUTES --> PROXY_CTRL
-
-    AUTH_CTRL --> JWT
-    AUTH_CTRL --> FIREBASE_AUTH
-
-    DOC_CTRL --> DOC_SERVICE
-    PAYMENT_CTRL --> PAYMENT_SERVICE
-    PLAN_CTRL --> PLAN_SERVICE
-    SHARE_CTRL --> SHARE_SERVICE
-
-    PAYMENT_SERVICE --> PAYMENT_FACTORY
+    API --> JWT
+    API --> FIREBASE_AUTH
+    API --> OPENAI
+    OPENAI --> DOC_ANALYSIS
+    OPENAI --> FORM_PREFILL
+    API --> PAYMENT_FACTORY
     PAYMENT_FACTORY --> ASAAS
     PAYMENT_FACTORY --> STRIPE
-
-    DOC_SERVICE --> OPENAI
-    OPENAI --> ANALYZE
-    OPENAI --> PREFILL
-
-    DOC_SERVICE --> MARIADB
-    PLAN_SERVICE --> MARIADB
-    PAYMENT_SERVICE --> MARIADB
-    SHARE_SERVICE --> MARIADB
-
-    DOC_SERVICE --> FIREBASE_STORAGE
-    UPLOAD_SERVICE --> FIREBASE_STORAGE
-    UPLOAD_SERVICE --> FILE_SYSTEM
-
-    EXPRESS --> FIREBASE
-    EXPRESS --> WEBHOOK
-    EXPRESS --> NOTIFICATIONS
+    API --> FIREBASE_STORAGE
+    API --> FILE_SYSTEM
+    API --> MARIADB
 ```
 
 ## Frontend Architecture (Flutter)
