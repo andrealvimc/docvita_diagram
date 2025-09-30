@@ -140,111 +140,104 @@ graph TB
 
 ## Frontend Architecture (Flutter)
 
+### Visão Geral da Arquitetura
+
 ```mermaid
 graph TB
-    subgraph "Presentation Layer"
-        MAIN[main.dart<br/>App Entry Point]
-        ROUTES[Routes Configuration]
-        THEME[Theme Configuration]
+    subgraph "Platforms"
+        WEB["Flutter Web"]
+        ANDROID["Android"]
+        IOS["iOS"]
     end
 
-    subgraph "Core Layer"
-        SERVICES[Core Services]
-        MODELS[Core Models]
-        WIDGETS[Core Widgets]
-        MIXINS[Core Mixins]
+    subgraph "App Structure"
+        MAIN["main.dart"]
+        ROUTES["Routes"]
+        THEME["Theme"]
     end
 
     subgraph "Feature Modules"
-        AUTH_FEATURE[Auth Feature]
-        DOCS_FEATURE[Documents Feature]
-        EXAMS_FEATURE[Exams Feature]
-        MEDS_FEATURE[Medicines Feature]
-        PLANS_FEATURE[Plans Feature]
-        PROFILE_FEATURE[Profile Feature]
-        VACCINES_FEATURE[Vaccines Feature]
-        WEB_FEATURE[Web Landing]
+        FEATURES["Feature Modules<br/>(Auth, Docs, Exams, etc.)"]
+    end
+
+    subgraph "Core Layer"
+        SERVICES["Core Services"]
+        MODELS["Core Models"]
+        WIDGETS["Core Widgets"]
+    end
+
+    WEB --> MAIN
+    ANDROID --> MAIN
+    IOS --> MAIN
+    MAIN --> ROUTES
+    MAIN --> THEME
+    MAIN --> FEATURES
+    MAIN --> SERVICES
+    FEATURES --> MODELS
+    FEATURES --> WIDGETS
+```
+
+### Estrutura dos Features
+
+```mermaid
+graph LR
+    subgraph "Feature Modules"
+        AUTH["Auth Feature"]
+        DOCS["Documents Feature"]
+        EXAMS["Exams Feature"]
+        MEDS["Medicines Feature"]
+        PLANS["Plans Feature"]
+        PROFILE["Profile Feature"]
+        VACCINES["Vaccines Feature"]
+        WEB_LANDING["Web Landing"]
     end
 
     subgraph "Feature Structure"
-        UI[UI Layer]
-        DATA[Data Layer]
-        DOMAIN[Domain Layer]
+        UI["UI Layer"]
+        DATA["Data Layer"]
+        DOMAIN["Domain Layer"]
     end
 
+    AUTH --> UI
+    DOCS --> UI
+    EXAMS --> UI
+    MEDS --> UI
+    PLANS --> UI
+    PROFILE --> UI
+    VACCINES --> UI
+    WEB_LANDING --> UI
+
+    UI --> DATA
+    DATA --> DOMAIN
+```
+
+### Core Services e Integrações
+
+```mermaid
+graph TB
     subgraph "Core Services"
-        API_SERVICE[API Service]
-        AUTH_SERVICE[Auth Service]
-        FILE_SERVICE[File Service]
-        NOTIFICATION_SERVICE[Notification Service]
-        SESSION_SERVICE[Session Service]
-        BIOMETRIC_SERVICE[Biometric Service]
+        API_SERVICE["API Service"]
+        AUTH_SERVICE["Auth Service"]
+        FILE_SERVICE["File Service"]
+        NOTIFICATION_SERVICE["Notification Service"]
+        SESSION_SERVICE["Session Service"]
+        BIOMETRIC_SERVICE["Biometric Service"]
     end
 
     subgraph "External Integrations"
-        FIREBASE[Firebase SDK]
-        GOOGLE_SIGNIN[Google Sign-In]
-        ML_KIT[ML Kit OCR]
-        PDF_VIEWER[PDF Viewer]
-        IMAGE_PICKER[Image Picker]
-        FILE_PICKER[File Picker]
+        FIREBASE["Firebase SDK"]
+        GOOGLE_SIGNIN["Google Sign-In"]
+        ML_KIT["ML Kit OCR"]
+        PDF_VIEWER["PDF Viewer"]
+        IMAGE_PICKER["Image Picker"]
+        FILE_PICKER["File Picker"]
     end
 
     subgraph "State Management"
-        PROVIDER[Provider Pattern]
-        SESSION_MANAGER[Session Manager]
-        PLAN_LIMITER[Plan Limiter]
+        PROVIDER["Provider Pattern"]
+        SESSION_MANAGER["Session Manager"]
+        PLAN_LIMITER["Plan Limiter"]
     end
-
-    subgraph "Platform Support"
-        WEB[Web Platform]
-        ANDROID[Android Platform]
-        IOS[iOS Platform]
-    end
-
-    %% Connections
-    MAIN --> ROUTES
-    MAIN --> THEME
-    MAIN --> SERVICES
-
-    SERVICES --> API_SERVICE
-    SERVICES --> AUTH_SERVICE
-    SERVICES --> FILE_SERVICE
-    SERVICES --> NOTIFICATION_SERVICE
-    SERVICES --> SESSION_SERVICE
-    SERVICES --> BIOMETRIC_SERVICE
-
-    AUTH_FEATURE --> UI
-    AUTH_FEATURE --> DATA
-    AUTH_FEATURE --> DOMAIN
-
-    DOCS_FEATURE --> UI
-    DOCS_FEATURE --> DATA
-    DOCS_FEATURE --> DOMAIN
-
-    EXAMS_FEATURE --> UI
-    EXAMS_FEATURE --> DATA
-    EXAMS_FEATURE --> DOMAIN
-
-    MEDS_FEATURE --> UI
-    MEDS_FEATURE --> DATA
-    MEDS_FEATURE --> DOMAIN
-
-    PLANS_FEATURE --> UI
-    PLANS_FEATURE --> DATA
-    PLANS_FEATURE --> DOMAIN
-
-    PROFILE_FEATURE --> UI
-    PROFILE_FEATURE --> DATA
-    PROFILE_FEATURE --> DOMAIN
-
-    VACCINES_FEATURE --> UI
-    VACCINES_FEATURE --> DATA
-    VACCINES_FEATURE --> DOMAIN
-
-    WEB_FEATURE --> UI
-    WEB_FEATURE --> DATA
-    WEB_FEATURE --> DOMAIN
 
     API_SERVICE --> FIREBASE
     AUTH_SERVICE --> GOOGLE_SIGNIN
@@ -253,13 +246,39 @@ graph TB
     FILE_SERVICE --> IMAGE_PICKER
     FILE_SERVICE --> FILE_PICKER
 
-    SERVICES --> PROVIDER
-    SERVICES --> SESSION_MANAGER
-    SERVICES --> PLAN_LIMITER
+    API_SERVICE --> PROVIDER
+    SESSION_SERVICE --> SESSION_MANAGER
+    API_SERVICE --> PLAN_LIMITER
+```
 
-    MAIN --> WEB
-    MAIN --> ANDROID
-    MAIN --> IOS
+### Fluxo de Navegação
+
+```mermaid
+graph TD
+    START["App Start"]
+    LOADING["Loading Screen"]
+    AUTH_CHECK{"User Authenticated?"}
+    LOGIN["Login Page"]
+    HOME["Home Page"]
+    
+    subgraph "Main Features"
+        DOCS_PAGE["Documents Page"]
+        EXAMS_PAGE["Exams Page"]
+        MEDS_PAGE["Medicines Page"]
+        PLANS_PAGE["Plans Page"]
+        PROFILE_PAGE["Profile Page"]
+    end
+
+    START --> LOADING
+    LOADING --> AUTH_CHECK
+    AUTH_CHECK -->|No| LOGIN
+    AUTH_CHECK -->|Yes| HOME
+    LOGIN --> HOME
+    HOME --> DOCS_PAGE
+    HOME --> EXAMS_PAGE
+    HOME --> MEDS_PAGE
+    HOME --> PLANS_PAGE
+    HOME --> PROFILE_PAGE
 ```
 
 ## Data Flow Sequence
